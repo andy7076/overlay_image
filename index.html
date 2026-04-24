@@ -3,8 +3,114 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title data-i18n="title">Image Overlay Compare</title>
+
+<!-- Primary SEO -->
+<title data-i18n="pageTitle">Image Overlay Compare – Free Online Tool to Compare Two Images Side by Side</title>
+<meta name="description" data-i18n-meta="metaDescription" content="Free online image overlay & compare tool. Upload two images, overlay them with adjustable opacity, blend modes, drag, stretch and zoom to spot pixel differences. 100% browser-based, no upload to server." />
+<meta name="keywords" content="image overlay, compare images, image difference, image diff tool, overlay two images, transparent overlay, picture compare online, design comparison, pixel diff, 图片对比, 图片重叠, 在线图片对比" />
+<meta name="author" content="Overlay Image Compare" />
+<meta name="robots" content="index, follow" />
+<meta name="googlebot" content="index, follow" />
+<meta name="theme-color" content="#ffffff" />
+<link rel="canonical" href="https://andy7076.github.io/overlay_image/" />
+
+<!-- Alternate languages -->
+<link rel="alternate" hreflang="en" href="https://andy7076.github.io/overlay_image/" />
+<link rel="alternate" hreflang="zh-CN" href="https://andy7076.github.io/overlay_image/?lang=zh" />
+<link rel="alternate" hreflang="x-default" href="https://andy7076.github.io/overlay_image/" />
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Image Overlay Compare" />
+<meta property="og:title" content="Image Overlay Compare – Compare Two Images Online" />
+<meta property="og:description" content="Overlay two images with adjustable opacity, drag, stretch, zoom and blend modes to spot pixel differences. 100% browser-based." />
+<meta property="og:url" content="https://andy7076.github.io/overlay_image/" />
+<meta property="og:image" content="https://andy7076.github.io/overlay_image/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:locale:alternate" content="zh_CN" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Image Overlay Compare – Compare Two Images Online" />
+<meta name="twitter:description" content="Overlay two images with adjustable opacity, drag, stretch, zoom and blend modes to spot pixel differences." />
+<meta name="twitter:image" content="https://andy7076.github.io/overlay_image/og-image.png" />
+
+<!-- Favicon / PWA -->
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="apple-touch-icon" href="favicon.svg" />
+<link rel="manifest" href="site.webmanifest" />
+
+<!-- Preload -->
+<link rel="preload" href="styles.css" as="style" />
+<link rel="preload" href="script.js" as="script" />
+
 <link rel="stylesheet" href="styles.css" />
+
+<!-- Structured Data: WebApplication -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Image Overlay Compare",
+  "url": "https://andy7076.github.io/overlay_image/",
+  "description": "Free online tool to overlay and compare two images with adjustable opacity, drag, stretch, zoom and blend modes. Entirely client-side; no upload required.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any (Web)",
+  "browserRequirements": "Requires JavaScript. Requires HTML5.",
+  "inLanguage": ["en", "zh-CN"],
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "featureList": [
+    "Overlay two images",
+    "Adjustable opacity",
+    "Drag to reposition",
+    "Resize and stretch with handles",
+    "Cursor-anchored zoom",
+    "CSS blend modes (difference, multiply, screen, etc.)",
+    "Hide/show overlay",
+    "Bilingual UI (English, 中文)"
+  ]
+}
+</script>
+
+<!-- Structured Data: FAQ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I compare two images for differences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Upload two images, then use the opacity slider or the 'Difference' blend mode. Drag or resize the overlay image to align it with the base image."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are my images uploaded to a server?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. All image processing happens locally in your browser. Your files never leave your device."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I stretch or resize the second image?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Drag the corner handles to resize freely, drag the edge handles to stretch one axis, or hold Shift on a corner handle to preserve the aspect ratio."
+      }
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <header class="app-header">
@@ -13,14 +119,14 @@
       <h1 data-i18n="title">Image Overlay Compare</h1>
       <p class="subtitle" data-i18n="subtitle">Upload two images and overlay them to spot differences. The second image is semi-transparent by default.</p>
     </div>
-    <div class="lang-switch">
-      <button class="lang-btn active" data-lang="en">EN</button>
-      <button class="lang-btn" data-lang="zh">中文</button>
-    </div>
+    <nav class="lang-switch" aria-label="Language switcher">
+      <button class="lang-btn active" data-lang="en" aria-label="Switch to English">EN</button>
+      <button class="lang-btn" data-lang="zh" aria-label="切换到中文">中文</button>
+    </nav>
   </div>
 </header>
 
-<main class="app-main">
+<main class="app-main" role="main">
   <aside class="controls">
     <div class="uploader">
       <label class="upload-card" id="drop1">
@@ -79,9 +185,9 @@
 
   <section class="stage-wrap">
     <div class="stage" id="stage">
-      <img id="img1" class="layer layer1" alt="" />
+        <img id="img1" class="layer layer1" alt="Base image for comparison" />
       <div id="frame2" class="frame">
-        <img id="img2" class="layer layer2" alt="" />
+        <img id="img2" class="layer layer2" alt="Overlay image for comparison" />
         <span class="handle n"  data-dir="n"></span>
         <span class="handle s"  data-dir="s"></span>
         <span class="handle e"  data-dir="e"></span>
@@ -96,6 +202,46 @@
     <p class="tip" data-i18n="tip">Tip: Drag Image 2 to move. Drag the handles to resize/stretch. Scroll wheel to zoom.</p>
   </section>
 </main>
+
+<section class="seo-section" aria-labelledby="features-heading">
+  <div class="seo-inner">
+    <article>
+      <h2 id="features-heading" data-i18n="seo_features_h">Why use this image overlay tool?</h2>
+      <p data-i18n="seo_features_p">This free online image comparison tool lets you overlay two pictures and instantly see their differences. It runs entirely in your browser — no sign-up, no uploads to any server, and no watermarks. Designers, developers, photographers, and QA testers can use it to verify pixel-perfect implementations, spot visual regressions, compare photo edits, and align design mockups.</p>
+      <ul>
+        <li data-i18n="seo_f1"><strong>Privacy-first:</strong> 100% client-side; your images never leave your device.</li>
+        <li data-i18n="seo_f2"><strong>Adjustable opacity:</strong> Fade the overlay from 0% to 100% to reveal differences gradually.</li>
+        <li data-i18n="seo_f3"><strong>Blend modes:</strong> Use <em>Difference</em> to instantly highlight any mismatched pixels.</li>
+        <li data-i18n="seo_f4"><strong>Drag, stretch &amp; zoom:</strong> Freely move, resize, or stretch the overlay; Shift-drag to keep aspect ratio.</li>
+        <li data-i18n="seo_f5"><strong>Hide overlay:</strong> Quickly toggle the second image off to confirm the base without removing state.</li>
+        <li data-i18n="seo_f6"><strong>Bilingual:</strong> English and Simplified Chinese interface.</li>
+      </ul>
+    </article>
+    <article>
+      <h2 data-i18n="seo_faq_h">Frequently Asked Questions</h2>
+      <details open>
+        <summary data-i18n="faq_q1">How do I compare two images for differences?</summary>
+        <p data-i18n="faq_a1">Upload two images, then drag the opacity slider or choose the <em>Difference</em> blend mode. The overlay layer can be moved or resized to align with the base image.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq_q2">Are my images uploaded to a server?</summary>
+        <p data-i18n="faq_a2">No. All image processing happens locally in your browser using standard HTML5 and CSS. Your files never leave your device.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq_q3">Can I stretch the second image to a different size?</summary>
+        <p data-i18n="faq_a3">Yes. Drag any corner handle to resize freely, drag an edge handle to stretch a single axis, or hold Shift on a corner handle to preserve the original aspect ratio.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq_q4">Which image formats are supported?</summary>
+        <p data-i18n="faq_a4">Any image format your browser can display: PNG, JPEG, WebP, GIF, SVG, BMP, and more.</p>
+      </details>
+    </article>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <p data-i18n="footer">© Image Overlay Compare · A free, privacy-friendly tool for comparing two images in the browser.</p>
+</footer>
 
 <script src="script.js"></script>
 </body>

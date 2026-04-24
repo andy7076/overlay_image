@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://andy7076.github.io/overlay_image/sitemap.xml

@@ -1,0 +1,19 @@
+{
+  "name": "Image Overlay Compare",
+  "short_name": "Overlay Compare",
+  "description": "Free online tool to overlay and compare two images with adjustable opacity, drag, stretch, zoom and blend modes.",
+  "start_url": "/overlay_image/",
+  "scope": "/overlay_image/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#ffffff",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
