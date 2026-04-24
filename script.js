@@ -272,41 +272,112 @@ scalePlus.addEventListener('click', () => {
 // ===== Blend =====
 blend.addEventListener('change', () => { img2.style.mixBlendMode = blend.value; });
 
-// ===== Drag image 2 (move) =====
-let moveDrag = null;
-img2.addEventListener('mousedown', e => {
+// ===== Pointer-based interactions (mouse + touch + pen) =====
+// Supports: drag-move, handle-resize, pinch-zoom on touch, wheel zoom on mouse.
+
+const pointers = new Map(); // id -> {x, y}
+let moveDrag = null;    // {startX, startY, origX, origY, pid}
+let resizeDrag = null;  // {dir, startX, startY, origX, origY, origW, origH, aspect, pid, shiftKey}
+let pinch = null;       // {startDist, startMidX, startMidY, origX, origY, origW, origH}
+
+function stageLocal(clientX, clientY) {
+  const r = stage.getBoundingClientRect();
+  return { x: clientX - r.left, y: clientY - r.top };
+}
+
+// ---- Move (pointerdown on img2 body) ----
+img2.addEventListener('pointerdown', e => {
   if (!state.dragEnabled || !state.visible) return;
-  moveDrag = { startX: e.clientX, startY: e.clientY, origX: state.x, origY: state.y };
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  // If a 2nd pointer arrives, start pinch instead of move
+  if (pointers.size === 2) {
+    startPinch();
+    moveDrag = null;
+    return;
+  }
+  moveDrag = { pid: e.pointerId, startX: e.clientX, startY: e.clientY, origX: state.x, origY: state.y };
   stage.classList.add('dragging');
+  img2.setPointerCapture(e.pointerId);
   e.preventDefault();
   e.stopPropagation();
 });
 
-// ===== Resize handles =====
-let resizeDrag = null;
+// ---- Resize handles ----
 frame2.querySelectorAll('.handle').forEach(h => {
-  h.addEventListener('mousedown', e => {
+  h.addEventListener('pointerdown', e => {
     resizeDrag = {
+      pid: e.pointerId,
       dir: h.dataset.dir,
       startX: e.clientX, startY: e.clientY,
       origX: state.x, origY: state.y,
       origW: state.w, origH: state.h,
-      shift: false,
-      aspect: state.w / state.h,
+      aspect: state.w / Math.max(1, state.h),
+      shiftKey: e.shiftKey,
     };
+    h.setPointerCapture(e.pointerId);
     e.preventDefault();
     e.stopPropagation();
   });
 });
 
-window.addEventListener('mousemove', e => {
-  if (moveDrag) {
+// ---- Pinch helpers ----
+function startPinch() {
+  const pts = [...pointers.values()];
+  if (pts.length < 2) return;
+  const dx = pts[0].x - pts[1].x;
+  const dy = pts[0].y - pts[1].y;
+  const dist = Math.hypot(dx, dy) || 1;
+  const midClient = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+  const mid = stageLocal(midClient.x, midClient.y);
+  pinch = {
+    startDist: dist,
+    startMidX: mid.x,
+    startMidY: mid.y,
+    origX: state.x, origY: state.y,
+    origW: state.w, origH: state.h,
+  };
+}
+
+function updatePinch() {
+  if (!pinch) return;
+  const pts = [...pointers.values()];
+  if (pts.length < 2) return;
+  const dx = pts[0].x - pts[1].x;
+  const dy = pts[0].y - pts[1].y;
+  const dist = Math.hypot(dx, dy) || 1;
+  const scale = dist / pinch.startDist;
+  const nw = Math.max(10, pinch.origW * scale);
+  const nh = Math.max(10, pinch.origH * scale);
+  // Keep midpoint anchored within the image
+  const midClient = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+  const mid = stageLocal(midClient.x, midClient.y);
+  // point on image under start midpoint (in image local coords, 0..1)
+  const px = (pinch.startMidX - pinch.origX) / pinch.origW;
+  const py = (pinch.startMidY - pinch.origY) / pinch.origH;
+  state.w = nw;
+  state.h = nh;
+  state.x = mid.x - px * nw;
+  state.y = mid.y - py * nh;
+  applyFrame();
+  updateScaleDisplay();
+}
+
+// ---- Global pointermove ----
+window.addEventListener('pointermove', e => {
+  if (pointers.has(e.pointerId)) {
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  }
+  if (pinch && pointers.size >= 2) {
+    updatePinch();
+    return;
+  }
+  if (moveDrag && e.pointerId === moveDrag.pid) {
     state.x = moveDrag.origX + (e.clientX - moveDrag.startX);
     state.y = moveDrag.origY + (e.clientY - moveDrag.startY);
     applyFrame();
     return;
   }
-  if (resizeDrag) {
+  if (resizeDrag && e.pointerId === resizeDrag.pid) {
     const dx = e.clientX - resizeDrag.startX;
     const dy = e.clientY - resizeDrag.startY;
     let { origX, origY, origW, origH, dir, aspect } = resizeDrag;
@@ -315,7 +386,6 @@ window.addEventListener('mousemove', e => {
     if (dir.includes('s')) nh = Math.max(10, origH + dy);
     if (dir.includes('w')) { nw = Math.max(10, origW - dx); nx = origX + (origW - nw); }
     if (dir.includes('n')) { nh = Math.max(10, origH - dy); ny = origY + (origH - nh); }
-    // Shift key => preserve aspect ratio for corner drags
     if (e.shiftKey && dir.length === 2) {
       if (nw / nh > aspect) nw = nh * aspect;
       else nh = nw / aspect;
@@ -325,26 +395,27 @@ window.addEventListener('mousemove', e => {
     state.x = nx; state.y = ny; state.w = nw; state.h = nh;
     applyFrame();
     updateScaleDisplay();
-    return;
   }
 });
-window.addEventListener('mouseup', () => {
-  moveDrag = null;
-  resizeDrag = null;
-  stage.classList.remove('dragging');
-});
 
-// ===== Wheel zoom (cursor-anchored, uniform) =====
+function endPointer(e) {
+  pointers.delete(e.pointerId);
+  if (moveDrag && e.pointerId === moveDrag.pid) moveDrag = null;
+  if (resizeDrag && e.pointerId === resizeDrag.pid) resizeDrag = null;
+  if (pointers.size < 2) pinch = null;
+  if (pointers.size === 0) stage.classList.remove('dragging');
+}
+window.addEventListener('pointerup', endPointer);
+window.addEventListener('pointercancel', endPointer);
+
+// ===== Wheel zoom (desktop) =====
 stage.addEventListener('wheel', e => {
   if (!state.hasImg2 || !state.visible) return;
   e.preventDefault();
-  const rect = stage.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const my = e.clientY - rect.top;
+  const { x: mx, y: my } = stageLocal(e.clientX, e.clientY);
   const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
   const nw = Math.max(10, state.w * factor);
   const nh = Math.max(10, state.h * factor);
-  // Keep the point under cursor stationary within the image
   state.x = mx - ((mx - state.x) * (nw / state.w));
   state.y = my - ((my - state.y) * (nh / state.h));
   state.w = nw;
@@ -352,9 +423,6 @@ stage.addEventListener('wheel', e => {
   applyFrame();
   updateScaleDisplay();
 }, { passive: false });
-
-// Also zoom when hovering the controls? no – only stage
-// Prevent scrolling page when hovering stage already handled.
 
 // ===== Buttons =====
 toggleDragBtn.addEventListener('click', () => {

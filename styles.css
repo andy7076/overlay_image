@@ -7,6 +7,7 @@ html, body {
   color: #1f2937;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 .app-header {
@@ -53,7 +54,14 @@ html, body {
   gap: 20px;
 }
 @media (max-width: 900px) {
-  .app-main { grid-template-columns: 1fr; }
+  .app-main {
+    grid-template-columns: 1fr;
+    padding: 12px 12px 32px;
+    gap: 12px;
+  }
+  /* Stage appears first on mobile */
+  .stage-wrap { order: 1; }
+  .controls   { order: 2; }
 }
 
 .controls {
@@ -163,8 +171,10 @@ html, body {
 .stage {
   position: relative;
   width: 100%;
+  max-width: 100%;
   min-height: 520px;
   height: calc(100vh - 220px);
+  touch-action: none;
   background-color: #ffffff;
   background-image:
     linear-gradient(45deg, #f0f1f3 25%, transparent 25%),
@@ -310,3 +320,33 @@ html, body {
   border-top: 1px solid #eef0f3;
 }
 .site-footer p { margin: 0; }
+
+/* ===== Mobile tweaks ===== */
+@media (max-width: 900px) {
+  .header-inner { padding: 14px 16px; }
+  .header-text h1 { font-size: 18px; }
+  .subtitle { font-size: 12px; }
+  .stage {
+    min-height: 320px;
+    height: 60vh;
+    max-height: 520px;
+  }
+  .stage-wrap .tip { padding: 0 4px; }
+  .controls { padding: 12px; }
+  .toggles { grid-template-columns: 1fr 1fr; }
+  /* Larger, easier-to-tap handles on touch devices */
+  .handle { width: 16px; height: 16px; }
+  .handle.nw { left: -9px; top: -9px; }
+  .handle.ne { right: -9px; top: -9px; }
+  .handle.sw { left: -9px; bottom: -9px; }
+  .handle.se { right: -9px; bottom: -9px; }
+  .handle.n  { top: -9px; }
+  .handle.s  { bottom: -9px; }
+  .handle.w  { left: -9px; }
+  .handle.e  { right: -9px; }
+  .seo-section { padding: 32px 16px; }
+}
+@media (pointer: coarse) {
+  /* Bigger targets on any touch device */
+  .handle { width: 18px; height: 18px; }
+}
