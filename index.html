@@ -1,74 +1,99 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>图片重叠对比工具</title>
+<title data-i18n="title">Image Overlay Compare</title>
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 <header class="app-header">
-  <h1>图片重叠对比工具</h1>
-  <p class="subtitle">上传两张图片，叠加查看差异。第二张默认半透明，便于比对。</p>
+  <div class="header-inner">
+    <div class="header-text">
+      <h1 data-i18n="title">Image Overlay Compare</h1>
+      <p class="subtitle" data-i18n="subtitle">Upload two images and overlay them to spot differences. The second image is semi-transparent by default.</p>
+    </div>
+    <div class="lang-switch">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="zh">中文</button>
+    </div>
+  </div>
 </header>
 
 <main class="app-main">
-  <section class="controls">
+  <aside class="controls">
     <div class="uploader">
       <label class="upload-card" id="drop1">
         <input type="file" id="file1" accept="image/*" hidden />
         <div class="upload-inner">
-          <div class="badge">底层 图片 1</div>
-          <div class="hint">点击或拖拽上传</div>
+          <div class="badge" data-i18n="layer1">Base · Image 1</div>
+          <div class="hint" data-i18n="uploadHint">Click or drop an image here</div>
         </div>
       </label>
       <label class="upload-card" id="drop2">
         <input type="file" id="file2" accept="image/*" hidden />
         <div class="upload-inner">
-          <div class="badge badge-top">叠加 图片 2</div>
-          <div class="hint">点击或拖拽上传（默认半透明）</div>
+          <div class="badge badge-top" data-i18n="layer2">Overlay · Image 2</div>
+          <div class="hint" data-i18n="uploadHint2">Click or drop (semi-transparent by default)</div>
         </div>
       </label>
     </div>
 
     <div class="sliders">
       <div class="slider-group">
-        <label for="opacity">图片 2 透明度 <span id="opacityVal">50%</span></label>
+        <label for="opacity"><span data-i18n="opacity">Image 2 opacity</span> <span id="opacityVal">50%</span></label>
         <input type="range" id="opacity" min="0" max="100" value="50" />
       </div>
       <div class="slider-group">
-        <label for="scale">图片 2 缩放 <span id="scaleVal">100%</span></label>
-        <input type="range" id="scale" min="10" max="300" value="100" />
+        <label for="scale"><span data-i18n="scale">Image 2 scale</span> <span id="scaleVal">100%</span></label>
+        <div class="scale-row">
+          <button class="icon-btn" id="scaleMinus">−</button>
+          <input type="range" id="scale" min="10" max="400" step="1" value="100" />
+          <button class="icon-btn" id="scalePlus">+</button>
+        </div>
       </div>
       <div class="slider-group">
-        <label for="blend">混合模式</label>
+        <label for="blend" data-i18n="blend">Blend mode</label>
         <select id="blend">
-          <option value="normal">正常</option>
-          <option value="difference">差异 (Difference)</option>
-          <option value="multiply">正片叠底</option>
-          <option value="screen">滤色</option>
-          <option value="overlay">叠加</option>
-          <option value="darken">变暗</option>
-          <option value="lighten">变亮</option>
-          <option value="exclusion">排除</option>
+          <option value="normal" data-i18n="blend_normal">Normal</option>
+          <option value="difference" data-i18n="blend_diff">Difference</option>
+          <option value="multiply" data-i18n="blend_multiply">Multiply</option>
+          <option value="screen" data-i18n="blend_screen">Screen</option>
+          <option value="overlay" data-i18n="blend_overlay">Overlay</option>
+          <option value="darken" data-i18n="blend_darken">Darken</option>
+          <option value="lighten" data-i18n="blend_lighten">Lighten</option>
+          <option value="exclusion" data-i18n="blend_exclusion">Exclusion</option>
         </select>
       </div>
       <div class="slider-group toggles">
-        <button id="toggleDrag" class="btn">✋ 拖动图片 2: 开启</button>
-        <button id="resetPos" class="btn">↺ 重置位置</button>
-        <button id="swap" class="btn">⇅ 交换顺序</button>
-        <button id="clear" class="btn btn-danger">✕ 清空</button>
+        <button id="toggleVisible" class="btn active"><span data-i18n="visOn">👁 Show Image 2</span></button>
+        <button id="toggleDrag" class="btn active"><span data-i18n="dragOn">✋ Drag: ON</span></button>
+        <button id="fit" class="btn"><span data-i18n="fit">⤢ Fit</span></button>
+        <button id="actual" class="btn"><span data-i18n="actual">1:1 Actual</span></button>
+        <button id="matchBase" class="btn"><span data-i18n="matchBase">⇆ Match base</span></button>
+        <button id="swap" class="btn"><span data-i18n="swap">⇅ Swap</span></button>
+        <button id="clear" class="btn btn-danger"><span data-i18n="clear">✕ Clear</span></button>
       </div>
     </div>
-  </section>
+  </aside>
 
   <section class="stage-wrap">
     <div class="stage" id="stage">
       <img id="img1" class="layer layer1" alt="" />
-      <img id="img2" class="layer layer2" alt="" />
-      <div class="placeholder" id="placeholder">请先上传两张图片</div>
+      <div id="frame2" class="frame">
+        <img id="img2" class="layer layer2" alt="" />
+        <span class="handle n"  data-dir="n"></span>
+        <span class="handle s"  data-dir="s"></span>
+        <span class="handle e"  data-dir="e"></span>
+        <span class="handle w"  data-dir="w"></span>
+        <span class="handle ne" data-dir="ne"></span>
+        <span class="handle nw" data-dir="nw"></span>
+        <span class="handle se" data-dir="se"></span>
+        <span class="handle sw" data-dir="sw"></span>
+      </div>
+      <div class="placeholder" id="placeholder" data-i18n="placeholder">Please upload two images</div>
     </div>
-    <p class="tip">提示：开启拖动后可用鼠标移动图片 2，滚轮调整缩放。</p>
+    <p class="tip" data-i18n="tip">Tip: Drag Image 2 to move. Drag the handles to resize/stretch. Scroll wheel to zoom.</p>
   </section>
 </main>
 
