@@ -49,7 +49,7 @@ const I18N = {
     clear: '✕ Clear',
     placeholder: 'Please upload two images',
     placeholder1: 'Upload one more image to compare',
-    tip: 'Tip: Drag Image 2 to move. Drag the handles to resize/stretch. Scroll wheel to zoom.',
+    tip: 'Tip: Drag Image 2 to move. Drag the handles to resize or stretch. Use the scale slider or pinch on touch to zoom.',
   },
   zh: {
     pageTitle: '图片重叠对比工具 – 在线免费比较两张图片差异',
@@ -100,7 +100,7 @@ const I18N = {
     clear: '✕ 清空',
     placeholder: '请先上传两张图片',
     placeholder1: '再上传一张图片即可对比',
-    tip: '提示：拖动图片 2 移动；拖拽边角手柄调整大小/拉伸；滚轮缩放。',
+    tip: '提示：拖动图片 2 移动；拖拽边角手柄调整大小/拉伸；使用缩放滑块或双指捏合缩放。',
   },
 };
 let currentLang = 'en';
@@ -408,21 +408,7 @@ function endPointer(e) {
 window.addEventListener('pointerup', endPointer);
 window.addEventListener('pointercancel', endPointer);
 
-// ===== Wheel zoom (desktop) =====
-stage.addEventListener('wheel', e => {
-  if (!state.hasImg2 || !state.visible) return;
-  e.preventDefault();
-  const { x: mx, y: my } = stageLocal(e.clientX, e.clientY);
-  const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
-  const nw = Math.max(10, state.w * factor);
-  const nh = Math.max(10, state.h * factor);
-  state.x = mx - ((mx - state.x) * (nw / state.w));
-  state.y = my - ((my - state.y) * (nh / state.h));
-  state.w = nw;
-  state.h = nh;
-  applyFrame();
-  updateScaleDisplay();
-}, { passive: false });
+// Wheel zoom disabled — use the scale slider / +/- buttons / pinch instead.
 
 // ===== Buttons =====
 toggleDragBtn.addEventListener('click', () => {
