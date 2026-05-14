@@ -531,16 +531,21 @@ function applyI18n() {
   const ogLocale = document.querySelector('meta[property="og:locale"]');
   if (ogLocale) ogLocale.setAttribute('content', currentLang === 'zh' ? 'zh_CN' : 'en_US');
 }
-function setLang(lang) {
+function setLang(lang, options = {}) {
+  const { persist = true, syncUrl = true } = options;
   if (!I18N[lang]) lang = 'en';
   currentLang = lang;
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
-  try { localStorage.setItem('overlay_lang', lang); } catch (_) {}
+  if (persist) {
+    try { localStorage.setItem('overlay_lang', lang); } catch (_) {}
+  }
   // Update URL without reload
-  const url = new URL(location.href);
-  if (lang === 'en') url.searchParams.delete('lang');
-  else url.searchParams.set('lang', lang);
-  history.replaceState(null, '', url.toString());
+  if (syncUrl) {
+    const url = new URL(location.href);
+    if (lang === 'en') url.searchParams.delete('lang');
+    else url.searchParams.set('lang', lang);
+    history.replaceState(null, '', url.toString());
+  }
   applyI18n();
 }
 
@@ -548,18 +553,30 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
   btn.addEventListener('click', () => setLang(btn.dataset.lang));
 });
 
-// Detect language: ?lang= > localStorage > default en (explicit user preference)
+function detectBrowserLang() {
+  const languages = navigator.languages && navigator.languages.length
+    ? navigator.languages
+    : [navigator.language || navigator.userLanguage || ''];
+
+  return languages.some(lang => String(lang).toLowerCase().startsWith('zh')) ? 'zh' : 'en';
+}
+
+// Detect language: ?lang= > localStorage > browser language > default en
 function detectLang() {
   const q = new URLSearchParams(location.search).get('lang');
-  if (q && I18N[q]) return q;
+  if (q && I18N[q]) return { lang: q, source: 'query' };
   try {
     const saved = localStorage.getItem('overlay_lang');
-    if (saved && I18N[saved]) return saved;
+    if (saved && I18N[saved]) return { lang: saved, source: 'storage' };
   } catch (_) {}
-  return 'en';
+  return { lang: detectBrowserLang(), source: 'browser' };
 }
 
 // ===== Init =====
 img2.style.opacity = 0.5;
-setLang(detectLang());
+const initialLang = detectLang();
+setLang(initialLang.lang, {
+  persist: initialLang.source === 'query',
+  syncUrl: initialLang.source !== 'browser'
+});
 updatePlaceholder();
