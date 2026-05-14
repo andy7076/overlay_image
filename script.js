@@ -38,6 +38,9 @@ const I18N = {
     blend_darken: 'Darken',
     blend_lighten: 'Lighten',
     blend_exclusion: 'Exclusion',
+    themeLight: 'Day',
+    themeDark: 'Night',
+    themeSystem: 'System',
     dragOn: '✋ Drag: ON',
     dragOff: '✋ Drag: OFF',
     visOn: '👁 Show Image 2',
@@ -89,6 +92,9 @@ const I18N = {
     blend_darken: '变暗',
     blend_lighten: '变亮',
     blend_exclusion: '排除',
+    themeLight: '日间',
+    themeDark: '夜间',
+    themeSystem: '跟随系统',
     dragOn: '✋ 拖动：开启',
     dragOff: '✋ 拖动：关闭',
     visOn: '👁 显示图片 2',
@@ -123,6 +129,8 @@ const toggleDragBtn = $('toggleDrag');
 const toggleVisibleBtn = $('toggleVisible');
 const fitBtn = $('fit'), actualBtn = $('actual'), matchBaseBtn = $('matchBase');
 const swapBtn = $('swap'), clearBtn = $('clear');
+const themeMeta = document.querySelector('meta[name="theme-color"]');
+const systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
 // ===== State =====
 const state = {
@@ -134,7 +142,59 @@ const state = {
   visible: true,
   hasImg1: false,
   hasImg2: false,
+  theme: 'system',
 };
+
+// ===== Theme switch =====
+function normalizeTheme(theme) {
+  return ['light', 'dark', 'system'].includes(theme) ? theme : 'system';
+}
+
+function resolvedTheme() {
+  return state.theme === 'system'
+    ? (systemThemeQuery.matches ? 'dark' : 'light')
+    : state.theme;
+}
+
+function updateThemeColor() {
+  if (!themeMeta) return;
+  themeMeta.setAttribute('content', resolvedTheme() === 'dark' ? '#171a21' : '#ffffff');
+}
+
+function setTheme(theme, persist = true) {
+  state.theme = normalizeTheme(theme);
+  document.documentElement.dataset.theme = state.theme;
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    const active = btn.dataset.themeOption === state.theme;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+  updateThemeColor();
+  if (persist) {
+    try { localStorage.setItem('overlay_theme', state.theme); } catch (_) {}
+  }
+}
+
+function detectTheme() {
+  try {
+    return normalizeTheme(localStorage.getItem('overlay_theme') || 'system');
+  } catch (_) {
+    return 'system';
+  }
+}
+
+document.querySelectorAll('.theme-btn').forEach(btn => {
+  btn.addEventListener('click', () => setTheme(btn.dataset.themeOption));
+});
+
+const handleSystemThemeChange = () => {
+  if (state.theme === 'system') updateThemeColor();
+};
+if (systemThemeQuery.addEventListener) {
+  systemThemeQuery.addEventListener('change', handleSystemThemeChange);
+} else if (systemThemeQuery.addListener) {
+  systemThemeQuery.addListener(handleSystemThemeChange);
+}
 
 function applyFrame() {
   frame2.style.left = state.x + 'px';
@@ -527,6 +587,14 @@ function applyI18n() {
   toggleVisibleBtn.querySelector('span').textContent = state.visible ? t('visOn') : t('visOff');
   if (!drop1.classList.contains('filled')) setHint(drop1, t('uploadHint'), false);
   if (!drop2.classList.contains('filled')) setHint(drop2, t('uploadHint2'), false);
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+    const key = el.getAttribute('data-i18n-aria');
+    if (key) {
+      const label = t(key);
+      el.setAttribute('aria-label', label);
+      el.setAttribute('title', label);
+    }
+  });
   // Sync OG locale
   const ogLocale = document.querySelector('meta[property="og:locale"]');
   if (ogLocale) ogLocale.setAttribute('content', currentLang === 'zh' ? 'zh_CN' : 'en_US');
@@ -573,6 +641,7 @@ function detectLang() {
 }
 
 // ===== Init =====
+setTheme(detectTheme(), false);
 img2.style.opacity = 0.5;
 const initialLang = detectLang();
 setLang(initialLang.lang, {
